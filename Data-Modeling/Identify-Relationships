@@ -1,0 +1,577 @@
+### Há 3 tipos de relacionamentos:
+    - One-to-one
+    - One-to-many
+    - Many-to-many
+
+    => Para saber qual o tipo, a pergunta é simples:
+    - A entidade X pode estar relacionada a mais de 1 entidade Y? 
+    E a entidade Y pode estar relacionada a mais de 1 entidade X?
+
+    => Se a resposta for não para ambas as perguntas, então, o relacionamento entre ela é 1-to-1.
+    Se a resposta for SIM para as 2, então, o relacionamento é many-to-many
+    Se a resposta for sim para 1 das perguntas e não para a outra, o relacionamento é 1-to-many
+
+    EX: 
+        Editora e Sede.
+            Uma sede é de apenas 1 editora;
+            Uma editora possui apenas 1 sede.
+            => Então, o relacionamento é 1 para 1
+        
+        Publicação e reviews:
+            -> Uma publicação pode ter várias avaliações, mas uma avaliação só pertence à uma publicação.
+            Então, o relacionamento é 1 para Muitos
+
+        Livros e autores:
+            Um livro pode ter vários autores;
+            Um autor pode ter vários livros.
+            => Esse é um relacionamento many-to-many
+
+    
+#### Embendding X Referencing:
+
+    - Reference => Guarda os documentos em collections distintas e os "linka" através de uma chave.
+    - Embendding => Guarda os documentos numa só collection (um documento contendo o subdocumento com os dados que possui relacionamento)
+
+
+Ex de reference:
+
+{
+    _id: ObjectID(XXXX),
+    title: "My study 123",
+    authors: [
+        "author1", 
+        "author2",
+        "author4"
+    ]
+}
+
+E em outra collection (de authors) tenho os docs:
+
+{
+    _id: ObjectId(YYYY),
+    author_ID: "author1",
+    name: "Nome author1"
+},
+{
+    _id: ObjectId(YYYY),
+    author_ID: "author2",
+    name: "Nome author2"
+},
+{
+    _id: ObjectId(YYYY),
+    author_ID: "author4",
+    name: "Nome author4"
+}
+
+
+Ex embendding:
+
+{
+    _id: ObjectID(XXXX),
+    title: "My study 123",
+    authors: [
+        {
+            author_ID: "author1",
+            name: "Nome author1"
+        },
+        {
+            author_ID: "author2",
+            name: "Nome author2"
+        },
+        {
+            author_ID: "author4",
+            name: "Nome author4"
+        }
+    ]
+}
+
+
+Quando usar um ou outro?
+    O MongoDB possui uma "regra de ouro" que diz que DADOS QUE SÃO ACESSADOS JUNTOS, DEVEM SER ARMAZENADOS JUNTOS. Porém, nem sempre isso é possível (dado a questão do size do documento).
+
+    Então, para decidir se vamos armazenar junto ou não devemos pensar?  Seguindo o guideline da mongo:
+        Para cada item, fazemos perguntas e com base nas respostas pontuamos para embendding ou relation.
+
+
+    GUIDELINE:
+    - Simplicity
+        -> Manter os dados juntos vai acarretar em ter um modelo mais simples (e um código mais simples)? 
+
+    - Go Together
+        -> As entidades "vão juntas". Elas têm um "tem um(a)", "está contida em"?
+
+    - Query Atomicity
+        -> As informações desses 2 dados são buscadas juntas?
+
+    - Update complexity
+        -> Essas entidades são atualizadas junto?
+
+    - Archival
+        -> Essas entidades deveriam ser arquivadas ao mesmo tempo?
+
+    - Cardinalilty
+        -> Há uma cardinalidade alta (ou possível de crescimento) para os filhos do relacionamento?
+
+    - Data duplication
+        -> Dados duplicados seriam muito complexos de serem tratados?
+
+    - Document Size
+        -> A combinação desses 2 dados juntos poderia consumir muita memória ou carregar a transferência de dados para a aplicação? (ou chegar no limite de 16MB do Mongo)
+    
+    - Document Growth
+        -> Se colocarmos o subdocumento, esse pode crescer sem um limite?
+
+    - Workload
+        -> As entidades desses 2 dados são escritas em momentos diferentes em um workload write-heavy?
+
+    - Individuality
+        -> A parte filha pode existir sem a parte pai? 
+
+
+
+    => Para o exemplo do livro e autores, vamos fazer essas perguntas:
+        Simplicidade:
+            O modelo (e o código) ficará mais simples se mantivermos essas informações juntas?
+                Sim (ponto para embendding)
+        
+        Go together:
+            As entidades vão juntas? "Um livro possui X autores", então, sim
+            Sim. (Ponto para embendding)
+
+        Query Atomicity:
+            Como normalmente se olha a informação dos livros e junto a informação de seus autores, sim!
+            Ponto para embendding
+        
+        Update complexity:
+            Essas entidades são alteradas juntos? 
+            Não, poderíamos alterar uma biografia do autor, sem alterar seus livros. Então, ponto para relacionship
+        
+        Archival:
+            As entidades são arquivas junto?
+            Não, o autor pode ter vários livros. Posso arquivar 1 livro dele, mas não vou querer arquivar ele todo.
+            Ponto para referencing
+
+        Cardinalilty:
+            Não há muitos autores num livro (e uma vez escrito, o numero de autores não aumenta)
+            Ponto para embendding 
+        
+        Data duplication:
+            Nesse exemplo, a duplicação de dados não gera complicação, então, a resposta é NÃO
+            ponto para Embendding
+
+        Document Size:
+            Nesse caso, não será um problema juntar os 2 num só. O documento não vai aumentar muito por colocar juntos os 2 dados.
+            Ponto para embendding
+
+        Document Growth:
+            Nesse exemplo, isso também não é uma possibilidade. O número de autores de um livro não tende a aumentar.
+            Ponto para embendding
+        
+        Workload:
+            As entidades são escritas em momentos distintos? Não! Vamos sempre cadastrar um livro com seus autores no mesmo momento.
+            Ponto para embendding
+
+        Individuality:
+            A parte filha pode existir sem a parte pai?
+            Um autor só existe se houver um livro. Então, não. Ponto para embendding
+
+        
+        Olhando esse resultado, fica claro que o embendding ganhou para esse caso. Pois a maioria foi para embendding.
+        Além disso, outros guidelines como size do document (ou crescimento do documento). Pois para esse caso, podemos ter estoro de documento. 
+
+
+### one-to-one
+    => é comum e colocamos como uma propriedade (um campo) dentro do documento.
+    Por exemplo, paises possuem seu contry_code.
+
+    Pensando em Editora e Sede:
+        As propriedades de cada uma dessas entidades são:
+
+        * Editora (publisher):
+            - publisherId
+            - name
+            - founded
+            - description
+            - headquarters
+            - socials
+        
+        * Headquarters (sede):
+            - street
+            - city
+            - state
+            - contry
+            - zip
+
+        formas de modelar isso:
+        1) Colocar cada propriedade da SEDE como uma propriedade da Editora:
+
+            {
+                publisherId: "pub123",
+                name: "Name12",
+                description: "blablabal",
+                socials: "http://xxxx..",
+                street: "1234 street",
+                city: "New York",
+                state: "New York",
+                contry: "USA",
+                zip: "12097983"
+            }        
+
+        2) Colocar as propriedades da SEDE como propriedades de um subdocumento da Editora:
+            
+            {
+                publisherId: "pub123",
+                name: "Name12",
+                description: "blablabal",
+                socials: "http://xxxx..",
+                headquarters: {
+                    street: "1234 street",
+                    city: "New York",
+                    state: "New York",
+                    contry: "USA",
+                    zip: "12097983"
+                }
+            }        
+
+        3) Colocando como relacionamento entre 2 collections:
+
+        Publisher:
+        {
+            publisherId: "pub123",
+            name: "Name12",
+            description: "blablabal",
+            socials: "http://xxxx..",
+            headquarterID: "HQ1234"
+        }     
+
+
+        headquarter:
+        {
+            headquarterID: "HQ1234",
+            street: "1234 street",
+            city: "New York",
+            state: "New York",
+            contry: "USA",
+            zip: "12097983"
+        }
+            => Esse tipo de relação nos faria sentido se os dados fossem lidos em momentos distintos; E se é lido primeiramente a informação dos publishers
+        
+        4) Opção de referencing, mas colocando o ID de referencia no filho
+            => Faz sentido se temos a leitura separada pelos 2 objetos. E se começamos a leitura pelo filho.
+        headquarter:
+        {
+            headquarterID: "HQ1234",
+            street: "1234 street",
+            city: "New York",
+            state: "New York",
+            contry: "USA",
+            zip: "12097983",
+            publisherId: "pub123"
+        }
+
+
+    => Para decidir em qual desses modelos usar o one-to-one, usamos os mesmos guidelines. Para esse caso, o melhor será usar o item 1 ou 2. O 2, entretanto fica mais claro de visualizar.
+            {
+                publisherId: "pub123",
+                name: "Name12",
+                description: "blablabal",
+                socials: "http://xxxx..",
+                headquarters: {
+                    street: "1234 street",
+                    city: "New York",
+                    state: "New York",
+                    contry: "USA",
+                    zip: "12097983"
+                }
+            }        
+
+
+
+
+### one-to-many
+    Exemplos de relacionamentos one-to-many:
+        -> cliente e suas compras
+        -> Livros e reviews
+        -> Post e comentários
+
+    como modelar a relação livro e reviews?
+
+    O mais comum é colocar o many dentro de um array de documentos (dentro do one). Nesse caso, ficaria assim:
+
+    1) array de subdocumentos
+    {
+        _id: "112",
+        title: "bkdebfkubruk bewujfberj",
+        author: "Paul Done",
+        reviews:[
+            {user_id: 123,
+            "title": "Lorm Ipsum",
+            review_text: "blablabla",
+            rating: 3
+            },
+            {user_id: 135,
+            "title": "Lorm nsesj",
+            review_text: "bjsrbj",
+            rating: 5
+            }
+        ]
+        
+    }
+
+    2) Subdocumento com vários subdocumentos:
+    Outra forma, é criar um sobdocumento (que contém outros subdocumentos):
+    Um atributo de cada objeto do subdocumento vira uma chave para o subdocumento. Nesse caso, o userId vira uma propriedade para manter cada subdocumento de reviews.
+    {
+        _id: "112",
+        title: "bkdebfkubruk bewujfberj",
+        author: "Paul Done",
+        reviews:
+        {
+            user123:
+            {
+                "title": "Lorm Ipsum",
+                review_text: "blablabla",
+                rating: 3
+            },
+            user135: 
+            {
+                "title": "Lorm nsesj",
+                review_text: "bjsrbj",
+                rating: 5
+            }
+        }
+    }
+
+    => Uma vantagem de embendding é que não há duplicidade de informação.
+    => Também é uma boa opção quando a parte do MANY não pode existir sem a parte do ONE existir (Como é o caso do review. Uma review não existe sem ter um livro)
+
+    3) Rerenciando:
+        3.1 - Temos um array no one que referencia os N da outra collection
+    books:
+    {
+        _id: "112",
+        title: "bkdebfkubruk bewujfberj",
+        author: "Paul Done",
+        reviews:[review1, review2] 
+    }
+
+    reviews:
+    {
+        id: "review1",
+        user_id: 123,
+        "title": "Lorm Ipsum",
+        review_text: "blablabla",
+        rating: 3
+    },
+    {
+        id: "review2",
+        user_id: 135,
+        "title": "Lorm nsesj",
+        review_text: "bjsrbj",
+        rating: 5
+    }
+
+        => Válido quando o many pode crescer demais. 
+        => válido quando queremos pesquisar primeiro pelo pai. Por exemplo, pesquiso pelo livro e depois vou olhar seus reviews.
+
+        3.2 - Temos a referencia do lado do filho
+    books:
+    {
+        _id: "112",
+        title: "bkdebfkubruk bewujfberj",
+        author: "Paul Done"
+    }
+
+    reviews:
+    {
+        id: "review1",
+        user_id: 123,
+        "title": "Lorm Ipsum",
+        review_text: "blablabla",
+        rating: 3,
+        book_id: "112"
+    },
+    {
+        id: "review2",
+        user_id: 135,
+        "title": "Lorm nsesj",
+        review_text: "bjsrbj",
+        rating: 5,
+        book_id: "112"
+    }
+
+        => Podemos fazer queries por reviews de um livro sem precisar de join
+
+    3.3 - Tb podemos ter relação bi-lateral
+    books:
+    {
+        _id: "112",
+        title: "bkdebfkubruk bewujfberj",
+        author: "Paul Done",
+        reviews:[review1, review2] 
+    }
+
+    reviews:
+
+    {
+        id: "review1",
+        user_id: 123,
+        "title": "Lorm Ipsum",
+        review_text: "blablabla",
+        rating: 3,
+        book_id: "112"
+    },
+    {
+        id: "review2",
+        user_id: 135,
+        "title": "Lorm nsesj",
+        review_text: "bjsrbj",
+        rating: 5,
+        book_id: "112"
+    }
+
+    => O preferível é embendingf com array de subdocumentos. Ao manter os dados juntos num mesmo documento, é possível ler os dados do relacionamento sem necessidade de lookup
+    MAS PRECISAMOS SEMPRE PENSAR NA CARDINALIDADE. Se hoiuverem muitos do MANY, pode ser problemático colocar os 2 juntos num só documento. E, aí, podemos seguir para o modelo de relationamento
+
+
+
+### many-to-many:
+    -> é o tipo mais complexo de modelar.
+
+    Ex: livro e autores
+
+    Opçoes de modelagem:
+
+    1) Colocando o autores dentro do livro:
+    {
+        Id: "book1",
+        title: "Mastering MongodB",
+        authors:[
+            {
+                authorId: "a123",
+                name: "Cristianaa San"
+            },
+            {
+                authorId: "a234",
+                name: "Dalm San"
+            }
+        ]
+    },
+        {
+        Id: "book2",
+        title: "Mastering Modeling",
+        authors:[
+            {
+                authorId: "a234",
+                name: "Dalm San"
+            }
+        ]
+    }
+
+    => Parecido com o One-to-Many. Mas, se um autior escrever mais de 1 livro, ele deverá aparecer embenddend em cada um dos livros que escreveu
+    => Resulta em duplicação de dados.
+    Nem toda duplicação de dados é ruim. Já que melhorarão a obtenção dos dados na performance.
+
+    2) colocando um subdocumento com N subdocumentos (tb parecido com o caso do one-to-many)
+    {
+        Id: "book1",
+        title: "Mastering MongodB",
+        authors:{
+            author123: {
+                name: "Cristianaa San"
+            },
+            author234:
+            {
+                name: "Dalm San"
+            }
+        }
+    },
+    {
+        Id: "book2",
+        title: "Mastering Modeling",
+        authors:{
+            author234:
+            {
+                name: "Dalm San"
+            }
+        }
+    }    
+
+
+    3) Refencia (precisamos usar um array):
+    3.1 - Colocando o array no pai:
+    * book:
+    {
+        Id: "book1",
+        title: "Mastering MongodB",
+        authors:[author123,author234]
+    },
+    {
+        Id: "book2",
+        title: "Mastering Modeling",
+        authors:[author234]
+    }    
+    
+    * authors:
+    {
+        authorId: "a123",
+        name: "Cristianaa San"
+    } ,  
+    {
+        authorId: "a234",
+        name: "Dalm San"
+    }
+
+    3.2 - Colocando no filho
+    * book:
+    {
+        Id: "book1",
+        title: "Mastering MongodB"
+    },
+    {
+        Id: "book2",
+        title: "Mastering Modeling"
+    }    
+    
+    * authors:
+    {
+        authorId: "a123",
+        name: "Cristianaa San"
+        books["book1"]
+    } ,  
+    {
+        authorId: "a234",
+        name: "Dalm San",
+        books: ["book1", "book2"]
+    }
+
+    3.3 - Colocando bi-direcional
+        => Mas, não é recomendado, pois pode ser mais complexo para manter
+    * book:
+    {
+        Id: "book1",
+        title: "Mastering MongodB",
+        authors:[author123,author234]
+    },
+    {
+        Id: "book2",
+        title: "Mastering Modeling",
+        authors:[author234]
+    }   
+    * authors:
+    {
+        authorId: "a123",
+        name: "Cristianaa San"
+        books["book1"]
+    } ,  
+    {
+        authorId: "a234",
+        name: "Dalm San",
+        books: ["book1", "book2"]
+    }
+
+    => Para esse caso, será melhor usar embendding, já que um livro não deve ter tantos autores (então, cardinalidade e growth não são problemas) e isso nos dará melhora na performance sem nos dar tanta complexidade para manter os dados duplicados. Escolheríamos, então, a opção 1 ou 2. Usar o array é a forma preferida (logo a opção 1 seria mais provavel de ser a escolhida)
+
+
+
+
