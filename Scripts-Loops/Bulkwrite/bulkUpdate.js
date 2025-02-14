@@ -1,3 +1,4 @@
+// ATENÇÃO - SCRIPT FEITO PARA MONGODB VERSÃO 7
 use interop-data
 // Para atualizar de 1k em 1k e evitar uma carga muito grande de updates em paralelo:
 let bulkArray = [];
