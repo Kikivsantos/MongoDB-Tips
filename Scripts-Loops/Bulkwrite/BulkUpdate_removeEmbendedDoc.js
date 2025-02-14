@@ -55,11 +55,11 @@ TENHO O DOCUMENTO ABAIXO NO MEU BANCO :
     "Receivables" : [
         {
             "ConsentIds" : [
-                "cddbd559-b81c-4022-98b7-484cc4d56e64"
+                "xxx1344"
             ],
             "CreditorDocument" : null,
-            "AcquirerDocument" : "52700000000000",
-            "OriginalAssetHolderDocument" : "92222222222222",
+            "AcquirerDocument" : "50000000000000",
+            "OriginalAssetHolderDocument" : "22222222222222",
             "PaymentScheme" : "VCC",
             "SettlementExpectations" : [
                 {
@@ -107,11 +107,11 @@ TENHO O DOCUMENTO ABAIXO NO MEU BANCO :
     "Receivables" : [
         {
             "ConsentIds" : [
-                "cddbd559-b81c-4022-98b7-484cc4d56e64"
+                "xxx1344"
             ],
             "CreditorDocument" : null,
-            "AcquirerDocument" : "52700000000000",
-            "OriginalAssetHolderDocument" : "92222222222222",
+            "AcquirerDocument" : "50000000000000",
+            "OriginalAssetHolderDocument" : "22222222222222",
             "PaymentScheme" : "VCC"
         }
     ]
