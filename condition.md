@@ -1,13 +1,16 @@
 ### Objetivo:
-  Para o exemplo de objetos abaixo, deseja-se pegar apenas os dados dos campos:
-  1 - ContractKey (Se não for preenchido, usar o valor do Contract.ControlData.ContractEffectId),
-  2 - Contract.ControlData.ContractEffectId,
-  3 - TradeRepository
-  4 - CreatedAt
+  Para o exemplo de objetos abaixo, deseja-se pegar apenas os dados dos campos:<br>
+  1 - ContractKey (Se não for preenchido, usar o valor do Contract.ControlData.ContractEffectId),<br>
+  2 - Contract.ControlData.ContractEffectId,<br>
+  3 - TradeRepository,<br>
+  4 - CreatedAt<br>
 
-Para isso, foi criada a query abaixo (mas que não atendia 100%):
+<br>
+
+**Para isso, foi criada a query abaixo (mas que não atendia 100%)**:
+
 // Query original:
-´´´
+```
 db["contract-registration-request"].aggregate([
     {
     $project: {
@@ -20,20 +23,23 @@ db["contract-registration-request"].aggregate([
     },
    { $out : "contract-tw-lastUpdate" }
    ])
- ´´´
-=> Ela não atendia quando o campo ContractKey não existia. O campo precisava ser preenchido como null para funcionar o código acima.
+```
+
+Ela não atendia quando o campo ContractKey não existia. O campo precisava ser preenchido para funcionar o código acima.
+
 Quando o campo ContractKey não existia o resultado obtido era como o exemplo abaixo:
 ```
    {
-    "ContractEffectId" : "29029af6-135d-4361-866a-e63427eb3eba",
+    "ContractEffectId" : "AAAAAA",
     "LastCreatedAt" : ISODate("2020-11-16T01:03:18.625+0000")
     }
 ```
 
-Para atender, foi necessário alterar para o código abaixo:
-// Código que atende para quando o campo não existe ou quando é nulo:
 
-´´´
+**Para atender, foi necessário alterar para o código abaixo:**
+// Código que atende para quando o campo não existe ou quando é preenchido:
+
+```
 db["contract-registration-request"].aggregate([
  {
  $project: {
@@ -46,26 +52,23 @@ db["contract-registration-request"].aggregate([
  }
 , { $out : "contract-tw-lastUpdate" }
  ])
- 
-´´´
+```
 
-
-
-
-// EXEMPLO OBJETOS:
-  -> As vezes possui o campo ContractKey (null ou com valor). às vezes o campo não existe.
+**Para entendimento mais claro, abaixo um exemplo de documento:**
+-> As vezes possui o campo ContractKey (null ou com valor). às vezes o campo não existe.
 
 // Quando o campo ContractKey não existe:
+```
 {
     "_id" : ObjectId("5fb1d14eaf1960544a176247"),
     "CreatedAt" : ISODate("2020-11-16T01:03:18.625+0000"),
-    "Key" : "29029af6-135d-4361-866a-e63427eb3eba",
+    "Key" : "KEY1",
     "IsCancelled" : false,
     "Contract" : {
         "ControlData" : {
             "CreatedDate" : "2020-11-16",
             "ReferenceDate" : "2020-11-16",
-            "ContractEffectId" : "29029af6-135d-4361-866a-e63427eb3eba",
+            "ContractEffectId" : "ContractEffectId1",
             "RenegotiatedContractEffectId" : null
         },
         "EffectType" : NumberInt(0),
@@ -82,15 +85,18 @@ db["contract-registration-request"].aggregate([
         "ContractExternId" : null
     }
 }
+```
+
 
 //Quando o campo existe:
 
+```
 {
     "_id" : ObjectId("641af79bbb3a43f84f3991b1"),
     "CreatedAt" : ISODate("2023-03-22T12:42:03.090+0000"),
-    "Key" : "77bcfa9f-f79c-4de8-ae87-4f0176705d84",
-    "ProcessKey" : "5383b2d3-f37b-433b-a847-5ab0a0cb07a2",
-    "TradeRepository" : "04391007000132",
+    "Key" : "Key2",
+    "ProcessKey" : "ProcessKey112",
+    "TradeRepository" : "TradeRepository123",
     "IsCancelled" : false,
     "IsProcessed" : false,
     "Status" : NumberInt(0),
@@ -100,7 +106,7 @@ db["contract-registration-request"].aggregate([
         "ControlData" : {
             "CreatedDate" : "2023-03-22",
             "ReferenceDate" : "2023-03-22",
-            "ContractEffectId" : "77bcfa9f-f79c-4de8-ae87-4f0176705d84",
+            "ContractEffectId" : "ContractEffectId233",
             "RenegotiatedContractEffectId" : null,
             "ReceivablesCount" : NumberInt(14948)
         },
@@ -114,7 +120,7 @@ db["contract-registration-request"].aggregate([
         "CommittedEffectAmount" : NumberLong(3000),
         "DivisionMethod" : NumberInt(1),
         "EffectStrategy" : NumberInt(1),
-        "ContractBeneficiaryDocument" : "59241891000110",
+        "ContractBeneficiaryDocument" : "ContractBeneficiaryDocument123",
         "ContractExternId" : "CT-ROBOTD631",
         "ContractStructure" : [
                     {
@@ -142,3 +148,5 @@ db["contract-registration-request"].aggregate([
         ]
     }
 }
+
+```
