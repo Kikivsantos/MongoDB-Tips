@@ -1,8 +1,11 @@
+// Feito na versão 7 do MongoDB
 // Bulk delete para a collection my-db.my-collection (do que não tiver o campo createdAt)
 use my-db
-// Em stg 
+
+// Estimativa da qtd
 db["my-collection"].count()
 // 763913
+
 
 db["my-collection"].createIndex({CreatedAt:1, _id:1})
 
