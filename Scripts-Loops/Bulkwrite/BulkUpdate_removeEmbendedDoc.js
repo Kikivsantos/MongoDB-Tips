@@ -50,7 +50,7 @@ TENHO O DOCUMENTO ABAIXO NO MEU BANCO :
  - QUERO REMOVER O SUBDOCUMENTO SettlementExpectations DE DENTRO DO SUBDOCUMENTO Receivables
 {
     "_id" : ObjectId("66fc55c60156ead8de11b7da"),
-    "Key" : "a73375c3-fd7f-49a6-831c-753ecd5806f5",
+    "Key" : "XXXX5",
     "CreatedAt" : ISODate("2024-10-01T20:04:22.000+0000"),
     "Receivables" : [
         {
@@ -102,7 +102,7 @@ TENHO O DOCUMENTO ABAIXO NO MEU BANCO :
 #### APÓS O UPDATE, O DOCUMENTO ACIMA FICA ASSIM:
 {
     "_id" : ObjectId("66fc55c60156ead8de11b7da"),
-    "Key" : "a73375c3-fd7f-49a6-831c-753ecd5806f5",
+    "Key" : "XXXX5",
     "CreatedAt" : ISODate("2024-10-01T20:04:22.000+0000"),
     "Receivables" : [
         {
