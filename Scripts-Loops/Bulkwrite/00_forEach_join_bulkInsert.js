@@ -2,6 +2,8 @@
 // Faz bulkArray com N insertOne para só quando esse array tiver >=1k ser, então, feito o insert de todos os 1k de vez.
 // Salva na COLLECTION_RESULT
 
+// ATENÇÃO - SCRIPT FEITO PARA MONGODB VERSÃO 7
+
 let bulkArray = [];
 db["COLLECTION_A"].find({}).forEach(function (doc) {
   let result = db["COLLECTION_B"].find({
