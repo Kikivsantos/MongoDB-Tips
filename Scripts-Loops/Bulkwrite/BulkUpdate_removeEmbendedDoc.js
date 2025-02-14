@@ -1,3 +1,4 @@
+// ATENÇÃO - SCRIPT FEITO PARA MONGODB VERSÃO 7
 // Comando para fazer a exclusão do embendded doc (Receivables.SettlementExpectations) para apenas 1 documento:
 /*
 db["agenda-receivable-external"].updateOne(
