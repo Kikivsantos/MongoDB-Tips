@@ -1,4 +1,3 @@
-
 // ############# SAIDA PRA CSV:
 // Export com filtro de data - Saida para CSV: 
 mongoexport mongodb+srv://USER:SENHA@HOST/DATABASE --db DATABASE --collection COLLECTION_NAME --query '{"DueDate" : { "$gte": { "$date": "2022-02-01T00:00:00.000Z" }, "$lt": {"$date": "2022-03-01T00:00:00.000Z"} } }' --fields "_id,Key,Status,ParticipantDocument,Message,EventType,ProcessKey,CreatedAt,RegistryAt,ServiceName,SpanContextName,FileCompactPaths,DataKey,Data" --readPreference=secondary  --type=csv --out  NOME_ARQUIVO.csv 
@@ -6,7 +5,9 @@ mongoexport mongodb+srv://USER:SENHA@HOST/DATABASE --db DATABASE --collection CO
 //## export com nohup - no secundário para csv (atenção aos campos precisam ser separados por virgula e sem espaço)!
 nohup ./mongoexport 'mongodb+srv://USER:SENHA@HOST/' -d="DATABASE_NAME" -c="COLLECTION_NAME" --fields "PositionKey,UpdatedAt" --readPreference=secondary  --type=csv --out  MY_FILE.csv &
 
-// ####### SAÍDA PARA JSON:
+
+
+// ############ SAÍDA PARA JSON:
 // Export com filtro de data - Saida para JSON:
 mongoexport --uri="mongodb+srv://USER@HOST/DATABASENAME"  --authenticationDatabase "admin" -c  "COLLECTION_NAME" --query '{"AssetHolder": "44217057000112"}'  --out  teste_result.json
 
@@ -17,6 +18,8 @@ mongoexport 'mongodb+srv://USER:SENHA@HOST/' --authenticationDatabase "admin" -d
 //## com $and:
 mongoexport 'mongodb+srv://USER:SENHA@HOST/' --authenticationDatabase "admin" -d BANCO -c 'COLLECTION' -q='{ "$and": [ {"CAMPO": {"$gte":"2021-01-01T00:00:00.207Z"}} , {"CAMPO": {"$lt":"2022-01-01T00:00:00.207Z"}}] }' --out ARQ_RESULT.json
 
+// EXPORT COM LIMIT
+mongoexport  'mongodb+srv://USER:SENHA@HOST/' --authenticationDatabase "admin" -d BANCO -c COLLECTION --limit 10000 --out /Users/cristianasantos/dump/NOME_ARQUIVO.json
 
 
 
